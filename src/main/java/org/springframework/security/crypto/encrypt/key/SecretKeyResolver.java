@@ -1,4 +1,4 @@
-package org.springframework.security.crypto.key;
+package org.springframework.security.crypto.encrypt.key;
 
 public interface SecretKeyResolver<T> {
 

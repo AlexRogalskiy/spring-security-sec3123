@@ -1,35 +1,39 @@
 package org.springframework.security.crypto.encrypt.provider;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.encrypt.key.SecretKey;
+import org.springframework.security.crypto.encrypt.key.SecretKeyResolver;
 
-public class StringEncryptorProvider implements EncryptorProvider<String> {
-
-    private String prop1Value;
-
-    @Autowired
-    private Environment environment;
+public class StringEncryptorProvider extends AbstractEncryptorProvider<String, String> {
 
     public StringEncryptorProvider() {
     }
 
     @Override
+    public SecretKeyResolver<String> getSecretKeyResolver() {
+        return new SystemEnvironmentSecretKeyResolver();
+    }
+
+    @Override
     public String encrypt(String data) {
-        return "encrypted-"+data;
+        return "encrypted-" + data;
     }
 
     @Override
     public String decrypt(String encryptedData) {
-        return "decrypted-"+encryptedData;
+        return encryptedData.replace("encrypted", "decrypted");
     }
 
-    public String getProp1Value() {
-        return prop1Value;
+    private static class SystemEnvironmentSecretKeyResolver implements SecretKeyResolver<String> {
+        @Override
+        public SecretKey<String> resolve() {
+            return new SecretKey<String>() {
+                @Override
+                public String getKey() {
+                    // TODO Get the secret key from the system environment using the 'well known' name
+                    return null;
+                }
+            };
+        }
     }
 
-    @Value("#{environment['name1']}")
-    public void setProp1Value(String prop1Value) {
-        this.prop1Value = prop1Value;
-    }
 }
