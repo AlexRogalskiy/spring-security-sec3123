@@ -17,32 +17,23 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
 
     protected Environment environment;
 
-    protected EncryptorProvider<String> encryptorProvider;
-
-
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         // TODO
-        // Resolve encrypted property values in BeanDefinition's (using BeanDefinitionVisitor)
+        // Decrypt encrypted property values in BeanDefinition's (using BeanDefinitionVisitor)
 
 
         // Register 'Embedded' StingValueResolver with BeanFactory.
         // Used to resolve string attributes within Annotated Types during Bean Creation (AutowiredAnnotationBeanPostProcessor)
         // This StingValueResolver is solely responsible for detecting encrypted values and then decrypting them.
-        beanFactory.addEmbeddedValueResolver(new PropertyValueDecryptor());
+        PropertyValueDecryptor propertyValueDecryptor = new PropertyValueDecryptor();
+        propertyValueDecryptor.setBeanFactory(beanFactory);
+        beanFactory.addEmbeddedValueResolver(propertyValueDecryptor);
     }
 
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;
-    }
-
-    public EncryptorProvider<String> getEncryptorProvider() {
-        return encryptorProvider;
-    }
-
-    public void setEncryptorProvider(EncryptorProvider<String> encryptorProvider) {
-        this.encryptorProvider = encryptorProvider;
     }
 
     @Override
@@ -67,6 +58,14 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
 
     private class PropertyValueDecryptor implements StringValueResolver {
 
+        private ConfigurableListableBeanFactory beanFactory;
+
+        private EncryptorProvider<String> encryptorProvider;
+
+
+        private PropertyValueDecryptor() {
+        }
+
         @Override
         public String resolveStringValue(String strVal) {
             if (strVal == null) {
@@ -77,11 +76,30 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
                 return strVal;
             }
 
+            // Strip out the encrypted property value placeholders (indicators)
             strVal = strVal.substring(1, strVal.length() - 1);
 
-            String decryptedValue = EncryptedPropertySupportPostProcessor.this.getEncryptorProvider().decrypt(strVal);
+            String decryptedValue = getEncryptorProvider().decrypt(strVal);
 
             return decryptedValue;
+        }
+
+        private EncryptorProvider<String> getEncryptorProvider() {
+            if (encryptorProvider != null) {
+                return encryptorProvider;
+            }
+            try {
+                encryptorProvider = beanFactory.getBean(EncryptorProvider.class);
+            } catch (BeansException be) {
+                // TODO Implement better handling
+                throw be;
+            }
+
+            return encryptorProvider;
+        }
+
+        private void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+            this.beanFactory = beanFactory;
         }
 
     }

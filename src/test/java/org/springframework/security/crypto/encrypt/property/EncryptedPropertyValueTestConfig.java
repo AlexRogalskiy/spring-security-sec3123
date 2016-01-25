@@ -24,14 +24,8 @@ public class EncryptedPropertyValueTestConfig {
     }
 
     @Bean
-    public BeanFactoryPostProcessor encryptedPropertySupportPostProcessor() {
-        // TODO
-        // The EncryptedPropertySupportPostProcessor should be able to auto-detect EncryptorProvider Type(s).
-        // Forcing explicit registration for now.
-        EncryptedPropertySupportPostProcessor encryptedPropertySupportPostProcessor = new EncryptedPropertySupportPostProcessor();
-        encryptedPropertySupportPostProcessor.setEncryptorProvider(stringEncryptorProvider());
-
-        return encryptedPropertySupportPostProcessor;
+    public static BeanFactoryPostProcessor encryptedPropertySupportPostProcessor() {
+        return new EncryptedPropertySupportPostProcessor();
     }
 
     @Bean
