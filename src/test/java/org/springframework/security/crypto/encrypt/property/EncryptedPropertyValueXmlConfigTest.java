@@ -8,7 +8,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/beans-test.xml")
@@ -30,10 +30,10 @@ public class EncryptedPropertyValueXmlConfigTest {
 
     @Test
     public void testPropertyValuesDecrypted() {
-        assertEquals("name1", "decrypted-value1", applicationProperties.getValue1());
-        assertEquals("name2", "decrypted-value2", applicationProperties.getValue2());
-        assertEquals("name3", "decrypted-value3", applicationProperties.getValue3());
-        assertEquals("name5", "decrypted-value5", applicationProperties.getValue5());
+        assertThat(applicationProperties.getValue1()).isEqualTo("decrypted-value1");
+        assertThat(applicationProperties.getValue2()).isEqualTo("decrypted-value2");
+        assertThat(applicationProperties.getValue3()).isEqualTo("decrypted-value3");
+        assertThat(applicationProperties.getValue5()).isEqualTo("decrypted-value5");
     }
 
 }
