@@ -1,20 +1,26 @@
 package org.springframework.security.crypto.encrypt.property;
 
-public class ApplicationProperties {
+import org.springframework.beans.factory.annotation.Value;
 
+public class ApplicationPropertiesConfig {
+
+    @Value("${name1}")
     private String value1;
 
+    @Value("${name2}")
     private String value2;
 
+    @Value("${name3}")
     private String value3;
 
+    @Value("${name4}")
     private String value4;
 
+    @Value("${name5}")
     private String value5;
 
+    @Value("${name6}")
     private String value6;
-
-    private Integer value7;
 
     public String getValue1() {
         return value1;

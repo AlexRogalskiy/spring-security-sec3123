@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath:/application-encrypted.properties, classpath:/application-partial-encrypted.properties" />
+
+    <bean id="encryptedPropertySupportPostProcessor" class="org.springframework.security.crypto.encrypt.property.EncryptedPropertySupportPostProcessor" />
+
+    <bean id="stringEncryptorProvider" class="org.springframework.security.crypto.encrypt.provider.SimpleEncryptorProvider" />
+
+    <bean id="applicationProperties" class="org.springframework.security.crypto.encrypt.property.ApplicationProperties">
+        <property name="value1" value="${name1}" />
+        <property name="value2" value="${name2}" />
+        <property name="value3" value="${name3}" />
+        <property name="value4" value="${name4}" />
+        <property name="value5" value="${name5}" />
+        <property name="value6" value="${name6}" />
+    </bean>
+
+</beans>

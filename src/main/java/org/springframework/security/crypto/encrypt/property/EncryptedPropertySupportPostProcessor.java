@@ -1,39 +1,73 @@
 package org.springframework.security.crypto.encrypt.property;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionVisitor;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
-import org.springframework.core.env.Environment;
-import org.springframework.security.crypto.encrypt.provider.EncryptorProvider;
+import org.springframework.security.crypto.encrypt.StringDecryptor;
 import org.springframework.util.StringValueResolver;
 
-public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostProcessor, EnvironmentAware, Ordered {
+public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostProcessor, BeanNameAware, BeanFactoryAware, Ordered {
 
-    public static final String ENCRYPTED_PROPERTY_VALUE_PREFIX = "[";
+    private String beanName;
 
-    public static final String ENCRYPTED_PROPERTY_VALUE_SUFFIX = "]";
+    private BeanFactory beanFactory;
 
-    protected Environment environment;
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // TODO
-        // Decrypt encrypted property values in BeanDefinition's (using BeanDefinitionVisitor)
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactoryToProcess) throws BeansException {
+        StringValueResolver stringValueResolver = createStringValueResolverAdaptDecryptor(beanFactoryToProcess);
 
+        // Decrypt encrypted property values in BeanDefinition's
+        // NOTE: Copied from PlaceholderConfigurerSupport.doProcessProperties() - review later for possible reuse?
+        BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(stringValueResolver);
+
+        String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
+        for (String curName : beanNames) {
+            // Check that we're not parsing our own bean definition,
+            // to avoid failing on unresolvable placeholders in properties file locations.
+            if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
+                BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
+                try {
+                    visitor.visitBeanDefinition(bd);
+                } catch (Exception ex) {
+                    throw new BeanDefinitionStoreException(bd.getResourceDescription(), curName, ex.getMessage(), ex);
+                }
+            }
+        }
 
         // Register 'Embedded' StingValueResolver with BeanFactory.
         // Used to resolve string attributes within Annotated Types during Bean Creation (AutowiredAnnotationBeanPostProcessor)
         // This StingValueResolver is solely responsible for detecting encrypted values and then decrypting them.
-        PropertyValueDecryptor propertyValueDecryptor = new PropertyValueDecryptor();
-        propertyValueDecryptor.setBeanFactory(beanFactory);
-        beanFactory.addEmbeddedValueResolver(propertyValueDecryptor);
+        beanFactoryToProcess.addEmbeddedValueResolver(stringValueResolver);
+    }
+
+    private StringValueResolver createStringValueResolverAdaptDecryptor(BeanFactory beanFactory) {
+        StringDecryptor stringDecryptor = new StringDecryptor();
+        stringDecryptor.setBeanFactory(beanFactory);
+
+        return new StringValueResolver() {
+            @Override
+            public String resolveStringValue(String strVal) {
+                return stringDecryptor.decrypt(strVal);
+            }
+        };
     }
 
     @Override
-    public void setEnvironment(Environment environment) {
-        this.environment = environment;
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 
     @Override
@@ -54,54 +88,6 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
          */
 
         return Ordered.LOWEST_PRECEDENCE + 1;
-    }
-
-    private class PropertyValueDecryptor implements StringValueResolver {
-
-        private ConfigurableListableBeanFactory beanFactory;
-
-        private EncryptorProvider<String> encryptorProvider;
-
-
-        private PropertyValueDecryptor() {
-        }
-
-        @Override
-        public String resolveStringValue(String strVal) {
-            if (strVal == null) {
-                return strVal;
-            }
-            if (!strVal.startsWith(ENCRYPTED_PROPERTY_VALUE_PREFIX) ||
-                    !strVal.endsWith(ENCRYPTED_PROPERTY_VALUE_SUFFIX)) {
-                return strVal;
-            }
-
-            // Strip out the encrypted property value placeholders (indicators)
-            strVal = strVal.substring(1, strVal.length() - 1);
-
-            String decryptedValue = getEncryptorProvider().decrypt(strVal);
-
-            return decryptedValue;
-        }
-
-        private EncryptorProvider<String> getEncryptorProvider() {
-            if (encryptorProvider != null) {
-                return encryptorProvider;
-            }
-            try {
-                encryptorProvider = beanFactory.getBean(EncryptorProvider.class);
-            } catch (BeansException be) {
-                // TODO Implement better handling
-                throw be;
-            }
-
-            return encryptorProvider;
-        }
-
-        private void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-            this.beanFactory = beanFactory;
-        }
-
     }
 
 }

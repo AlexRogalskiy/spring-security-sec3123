@@ -1,9 +1,8 @@
 package org.springframework.security.crypto.encrypt.provider;
 
-public interface EncryptorProvider<T> {
+import org.springframework.security.crypto.encrypt.Decryptable;
+import org.springframework.security.crypto.encrypt.Encryptable;
 
-    T encrypt(T data);
-
-    T decrypt(T encryptedData);
+public interface EncryptorProvider<T> extends Encryptable<T>, Decryptable<T> {
 
 }

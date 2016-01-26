@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.security.crypto.encrypt.provider.EncryptorProvider;
-import org.springframework.security.crypto.encrypt.provider.StringEncryptorProvider;
+import org.springframework.security.crypto.encrypt.provider.SimpleEncryptorProvider;
 
 @Configuration
-public class EncryptedPropertyValueTestConfig {
+public class EncryptedPropertyValueJavaConfig {
 
     @Bean
     public static BeanFactoryPostProcessor propertySourcesPlaceholderConfigurer() {
@@ -30,12 +30,12 @@ public class EncryptedPropertyValueTestConfig {
 
     @Bean
     public EncryptorProvider<String> stringEncryptorProvider() {
-        return new StringEncryptorProvider();
+        return new SimpleEncryptorProvider();
     }
 
     @Bean
-    public ApplicationProperties applicationProperties() {
-        return new ApplicationProperties();
+    public ApplicationPropertiesConfig applicationPropertiesConfig() {
+        return new ApplicationPropertiesConfig();
     }
 
 }
