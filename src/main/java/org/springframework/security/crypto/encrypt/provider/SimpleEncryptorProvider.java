@@ -9,7 +9,7 @@ public class SimpleEncryptorProvider implements EncryptorProvider<String> {
 
     @Override
     public String decrypt(String data) {
-        return data.replace("encrypted", "decrypted");
+        return "decrypted-" + data;
     }
 
 }
