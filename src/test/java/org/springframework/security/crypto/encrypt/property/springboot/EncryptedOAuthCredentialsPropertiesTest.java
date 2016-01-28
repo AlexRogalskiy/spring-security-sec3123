@@ -16,9 +16,11 @@ public class EncryptedOAuthCredentialsPropertiesTest {
     /*
       Configuration in "application.properties"
 
-        ## OAuth Client Credentials
-        security.oauth2.client.client-id=[serviceapp1]
-        security.oauth2.client.client-secret=[serviceapp1secret]
+        ## serviceapp1
+        security.oauth2.client.client-id=[7365727669636561707031]
+
+        ## serviceapp1secret
+        security.oauth2.client.client-secret=[7365727669636561707031736563726574]
     */
     @Autowired
     private OAuthCredentialsProperties oauthCredentialsProperties;
@@ -26,8 +28,8 @@ public class EncryptedOAuthCredentialsPropertiesTest {
 
     @Test
     public void testPropertyValuesDecrypted() {
-        assertThat(oauthCredentialsProperties.getClientId()).isEqualTo("decrypted-serviceapp1");
-        assertThat(oauthCredentialsProperties.getClientSecret()).isEqualTo("decrypted-serviceapp1secret");
+        assertThat(oauthCredentialsProperties.getClientId()).isEqualTo("serviceapp1");
+        assertThat(oauthCredentialsProperties.getClientSecret()).isEqualTo("serviceapp1secret");
     }
 
 }

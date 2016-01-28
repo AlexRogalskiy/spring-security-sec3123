@@ -18,28 +18,31 @@ public class EncryptedSSLConnectorPropertiesTest {
     /*
       Configuration in "application.properties"
 
-        ## SSL Connector
-        server.ssl.enabled=true
-        server.ssl.key-alias=partners
-        server.ssl.key-password=[keysecret]
-        server.ssl.key-store=[classpath:partners-keystore.jks]
-        server.ssl.key-store-password=[keystoresecret]
-        server.ssl.key-store-type=jks
-        server.ssl.trust-store=[classpath:partners-keystore.jks]
-        server.ssl.trust-store-password=[truststoresecret]
-        server.ssl.trust-store-type=jks
+        ## keysecret
+        server.ssl.key-password=[6b6579736563726574]
+
+        ## classpath:partners-keystore.jks
+        server.ssl.key-store=[636c617373706174683a706172746e6572732d6b657973746f72652e6a6b73]
+
+        ## keystoresecret
+        server.ssl.key-store-password=[6b657973746f7265736563726574]
+
+        ## classpath:partners-keystore.jks
+        server.ssl.trust-store=[636c617373706174683a706172746e6572732d6b657973746f72652e6a6b73]
+
+        ## truststoresecret
+        server.ssl.trust-store-password=[747275737473746f7265736563726574]
     */
     @Autowired
     private SSLConnectorProperties sslConnectorProperties;
 
-
     @Test
     public void testPropertyValuesDecrypted() {
-        assertThat(sslConnectorProperties.getKeyPassword()).isEqualTo("decrypted-keysecret");
-        assertThat(sslConnectorProperties.getKeyStore()).isEqualTo("decrypted-classpath:partners-keystore.jks");
-        assertThat(sslConnectorProperties.getKeyStorePassword()).isEqualTo("decrypted-keystoresecret");
-        assertThat(sslConnectorProperties.getTrustStore()).isEqualTo("decrypted-classpath:partners-keystore.jks");
-        assertThat(sslConnectorProperties.getTrustStorePassword()).isEqualTo("decrypted-truststoresecret");
+        assertThat(sslConnectorProperties.getKeyPassword()).isEqualTo("keysecret");
+        assertThat(sslConnectorProperties.getKeyStore()).isEqualTo("classpath:partners-keystore.jks");
+        assertThat(sslConnectorProperties.getKeyStorePassword()).isEqualTo("keystoresecret");
+        assertThat(sslConnectorProperties.getTrustStore()).isEqualTo("classpath:partners-keystore.jks");
+        assertThat(sslConnectorProperties.getTrustStorePassword()).isEqualTo("truststoresecret");
     }
 
 }

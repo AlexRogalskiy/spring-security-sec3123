@@ -18,13 +18,14 @@ public class EncryptedDatasourcePropertiesTest {
     /*
       Configuration in "application.properties"
 
-        ## Datasource
-        spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-        spring.datasource.jmx-enabled=true
-        spring.datasource.name=testdb
-        spring.datasource.url=[jdbc:mysql://localhost:3306/testdb]
-        spring.datasource.username=[testuser1]
-        spring.datasource.password=[testuser1password]
+        ## jdbc:mysql://localhost:3306/testdb
+        spring.datasource.url=[6a6462633a6d7973716c3a2f2f6c6f63616c686f73743a333330362f746573746462]
+
+        ## testuser1
+        spring.datasource.username=[746573747573657231]
+
+        ## testuser1password
+        spring.datasource.password=[74657374757365723170617373776f7264]
     */
     @Autowired
     private DataSourceProperties dataSourceProperties;
@@ -32,9 +33,9 @@ public class EncryptedDatasourcePropertiesTest {
 
     @Test
     public void testPropertyValuesDecrypted() {
-        assertThat(dataSourceProperties.getUrl()).isEqualTo("decrypted-jdbc:mysql://localhost:3306/testdb");
-        assertThat(dataSourceProperties.getUserName()).isEqualTo("decrypted-testuser1");
-        assertThat(dataSourceProperties.getPassword()).isEqualTo("decrypted-testuser1password");
+        assertThat(dataSourceProperties.getUrl()).isEqualTo("jdbc:mysql://localhost:3306/testdb");
+        assertThat(dataSourceProperties.getUserName()).isEqualTo("testuser1");
+        assertThat(dataSourceProperties.getPassword()).isEqualTo("testuser1password");
     }
 
 }

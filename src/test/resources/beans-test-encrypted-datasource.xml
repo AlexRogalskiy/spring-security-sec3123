@@ -9,8 +9,6 @@
 
     <bean id="encryptedPropertySupportPostProcessor" class="org.springframework.security.crypto.encrypt.property.EncryptedPropertySupportPostProcessor" />
 
-    <bean id="stringEncryptorProvider" class="org.springframework.security.crypto.encrypt.provider.SimpleEncryptorProvider" />
-
     <bean id="dataSourceProperties" class="org.springframework.security.crypto.encrypt.property.xmlconfig.DataSourceProperties">
         <property name="driverClassName" value="${spring.datasource.driver-class-name}" />
         <property name="jmxEnabled" value="${spring.datasource.jmx-enabled}" />

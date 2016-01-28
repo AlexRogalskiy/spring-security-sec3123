@@ -10,7 +10,6 @@ import org.springframework.beans.factory.config.BeanDefinitionVisitor;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.Ordered;
-import org.springframework.security.crypto.encrypt.StringDecryptor;
 import org.springframework.util.StringValueResolver;
 
 public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostProcessor, BeanNameAware, BeanFactoryAware, Ordered {
@@ -22,11 +21,11 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactoryToProcess) throws BeansException {
-        StringValueResolver stringValueResolver = createStringValueResolverAdaptDecryptor(beanFactoryToProcess);
+        StringValueResolver valueResolver = new EncryptedStringValueResolver();
 
-        // Decrypt encrypted property values in BeanDefinition's
+        // Decrypt encrypted string values in the BeanDefinition'
         // NOTE: Copied from PlaceholderConfigurerSupport.doProcessProperties() - review later for possible reuse?
-        BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(stringValueResolver);
+        BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
 
         String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
         for (String curName : beanNames) {
@@ -42,22 +41,9 @@ public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostPro
             }
         }
 
-        // Register 'Embedded' StingValueResolver with BeanFactory.
-        // Used to resolve string attributes within Annotated Types during Bean Creation (AutowiredAnnotationBeanPostProcessor)
-        // This StingValueResolver is solely responsible for detecting encrypted values and then decrypting them.
-        beanFactoryToProcess.addEmbeddedValueResolver(stringValueResolver);
-    }
-
-    private StringValueResolver createStringValueResolverAdaptDecryptor(BeanFactory beanFactory) {
-        StringDecryptor stringDecryptor = new StringDecryptor();
-        stringDecryptor.setBeanFactory(beanFactory);
-
-        return new StringValueResolver() {
-            @Override
-            public String resolveStringValue(String strVal) {
-                return stringDecryptor.decrypt(strVal);
-            }
-        };
+        // Register 'Embedded' StingValueResolver with the BeanFactory.
+        // Used to resolve encrypted string values in Annotated Types during Bean Creation.
+        beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
     }
 
     @Override
