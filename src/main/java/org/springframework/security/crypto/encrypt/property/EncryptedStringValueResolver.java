@@ -16,11 +16,7 @@ public class EncryptedStringValueResolver implements StringValueResolver {
 
     @Override
     public String resolveStringValue(String strVal) {
-        if (strVal == null) {
-            return strVal;
-        }
-        if (!strVal.startsWith(ENCRYPTED_STRING_VALUE_PREFIX) ||
-                !strVal.endsWith(ENCRYPTED_STRING_VALUE_SUFFIX)) {
+        if (!canResolve(strVal)) {
             return strVal;
         }
 
@@ -30,6 +26,14 @@ public class EncryptedStringValueResolver implements StringValueResolver {
         String decryptedStrValue = textEncryptor.decrypt(strVal);
 
         return decryptedStrValue;
+    }
+
+    protected boolean canResolve(String strVal) {
+        if (strVal == null) {
+            return false;
+        }
+        return (strVal.startsWith(ENCRYPTED_STRING_VALUE_PREFIX) &&
+                strVal.endsWith(ENCRYPTED_STRING_VALUE_SUFFIX));
     }
 
     private static class HexTextEncryptor implements TextEncryptor {

@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class SSLConnectorProperties {
 
+    @Value("${server.port}")
+    private Integer serverPort;
+
     @Value("${server.ssl.enabled}")
     private boolean enabled;
 
@@ -31,6 +34,14 @@ public class SSLConnectorProperties {
     @Value("${server.ssl.trust-store-type}")
     private String trustStoreType;
 
+
+    public Integer getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(Integer serverPort) {
+        this.serverPort = serverPort;
+    }
 
     public boolean isEnabled() {
         return enabled;

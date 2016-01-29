@@ -18,6 +18,9 @@ public class EncryptedSSLConnectorPropertiesTest {
     /*
       Configuration in "application.properties"
 
+        ## 8443
+        server.port=[38343433]
+
         ## keysecret
         server.ssl.key-password=[6b6579736563726574]
 
@@ -38,6 +41,7 @@ public class EncryptedSSLConnectorPropertiesTest {
 
     @Test
     public void testPropertyValuesDecrypted() {
+        assertThat(sslConnectorProperties.getServerPort()).isEqualTo(Integer.valueOf(8443));
         assertThat(sslConnectorProperties.getKeyPassword()).isEqualTo("keysecret");
         assertThat(sslConnectorProperties.getKeyStore()).isEqualTo("classpath:partners-keystore.jks");
         assertThat(sslConnectorProperties.getKeyStorePassword()).isEqualTo("keystoresecret");

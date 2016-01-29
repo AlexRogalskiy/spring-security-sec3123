@@ -1,79 +1,70 @@
 package org.springframework.security.crypto.encrypt.property;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionVisitor;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
+import org.springframework.core.PriorityOrdered;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringValueResolver;
 
-public class EncryptedPropertySupportPostProcessor implements BeanFactoryPostProcessor, BeanNameAware, BeanFactoryAware, Ordered {
+import java.util.Collections;
+import java.util.Set;
 
-    private String beanName;
+public class EncryptedPropertySupportPostProcessor implements
+        BeanDefinitionRegistryPostProcessor, PriorityOrdered, EnvironmentAware {
 
-    private BeanFactory beanFactory;
+    private int order = Ordered.LOWEST_PRECEDENCE;
 
+    private Environment environment;
+
+
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        // TODO Auto-register Crypto-related core services
+
+    }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactoryToProcess) throws BeansException {
-        StringValueResolver valueResolver = new EncryptedStringValueResolver();
+        registerEncryptedPropertyValueConverter(environment);
 
-        // Decrypt encrypted string values in the BeanDefinition'
-        // NOTE: Copied from PlaceholderConfigurerSupport.doProcessProperties() - review later for possible reuse?
-        BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
+    }
 
-        String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
-        for (String curName : beanNames) {
-            // Check that we're not parsing our own bean definition,
-            // to avoid failing on unresolvable placeholders in properties file locations.
-            if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
-                BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
-                try {
-                    visitor.visitBeanDefinition(bd);
-                } catch (Exception ex) {
-                    throw new BeanDefinitionStoreException(bd.getResourceDescription(), curName, ex.getMessage(), ex);
-                }
-            }
+    protected void registerEncryptedPropertyValueConverter(Environment environment) {
+        if (ConfigurableEnvironment.class.isInstance(environment)) {
+            ConfigurableEnvironment configurableEnvironment = ConfigurableEnvironment.class.cast(environment);
+            configurableEnvironment.getConversionService().addConverter(new EncryptedPropertyValueConverter());
         }
-
-        // Register 'Embedded' StingValueResolver with the BeanFactory.
-        // Used to resolve encrypted string values in Annotated Types during Bean Creation.
-        beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
-    }
-
-    @Override
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) {
-        this.beanFactory = beanFactory;
     }
 
     @Override
     public int getOrder() {
-        /*
-            FIXME:
-            This BeanFactoryPostProcessor MUST be called after PropertySourcesPlaceholderConfigurer is called.
-            Both of these post processors register a StringValueResolver with the ConfigurableListableBeanFactory.addEmbeddedValueResolver hook.
-            The StringValueResolver registered by PropertySourcesPlaceholderConfigurer will resolve property placeholders against the Environment.
-            The StringValueResolver registered by *this* BeanFactoryPostProcessor will resolve/decrypt encrypted property values against the registerd EncryptorProvider.
-            Hence, the ordering is important. First the property placeholder replacement and then the decryption of the property value.
-                NOTE: The embedded value resolver's are indirectly called by AutowiredAnnotationBeanPostProcessor during bean creation
+        return order;
+    }
 
-            PropertySourcesPlaceholderConfigurer order is set at Ordered.LOWEST_PRECEDENCE
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
-            So setting the order of *this* BeanFactoryPostProcessor to Ordered.LOWEST_PRECEDENCE will ensure it's called after?
-            Or looks like we need to set it at Ordered.LOWEST_PRECEDENCE + 1 to guarantee that's it's called after?
-         */
+    private static class EncryptedPropertyValueConverter implements GenericConverter {
+        private StringValueResolver valueResolver = new EncryptedStringValueResolver();
 
-        return Ordered.LOWEST_PRECEDENCE + 1;
+        @Override
+        public Set<ConvertiblePair> getConvertibleTypes() {
+            return Collections.singleton(new ConvertiblePair(String.class, String.class));
+        }
+
+        @Override
+        public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+            return valueResolver.resolveStringValue(String.class.cast(source));
+        }
     }
 
 }

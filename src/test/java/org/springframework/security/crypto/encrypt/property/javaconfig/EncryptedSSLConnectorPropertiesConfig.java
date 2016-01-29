@@ -1,6 +1,7 @@
 package org.springframework.security.crypto.encrypt.property.javaconfig;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -15,7 +16,7 @@ public class EncryptedSSLConnectorPropertiesConfig {
     }
 
     @Bean
-    public static BeanFactoryPostProcessor encryptedPropertySupportPostProcessor() {
+    public static BeanDefinitionRegistryPostProcessor encryptedPropertySupportPostProcessor() {
         return new EncryptedPropertySupportPostProcessor();
     }
 
