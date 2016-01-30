@@ -2,7 +2,7 @@ package org.springframework.security.crypto.encrypt.property.springboot;
 
 import org.springframework.beans.factory.annotation.Value;
 
-public class OAuthCredentialsProperties {
+public class OAuthClientCredentialsProperties {
 
     @Value("${security.oauth2.client.client-id}")
     private String clientId;

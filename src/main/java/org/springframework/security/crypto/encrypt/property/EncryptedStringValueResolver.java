@@ -5,14 +5,29 @@ import org.springframework.security.crypto.codec.Utf8;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.util.StringValueResolver;
 
+/**
+ * This class is a {@link StringValueResolver} which is capable of
+ * detecting encrypted string values.
+ *
+ * If the string value is encrypted, it will attempt to decrypt the value
+ * using the provided {@link TextEncryptor} before returning back to the caller.
+ *
+ * @see org.springframework.security.crypto.encrypt.TextEncryptor
+ * @see org.springframework.security.crypto.encrypt.property.EncryptedPropertySupportPostProcessor
+ */
 public class EncryptedStringValueResolver implements StringValueResolver {
 
-    public static final String ENCRYPTED_STRING_VALUE_PREFIX = "[";
+    public static final String DEFAULT_PLACEHOLDER_PREFIX = "[";
 
-    public static final String ENCRYPTED_STRING_VALUE_SUFFIX = "]";
+    public static final String DEFAULT_PLACEHOLDER_SUFFIX = "]";
 
-    // TODO Inject application-provided TextEncryptor - using default impl for now
+    protected String placeholderPrefix = DEFAULT_PLACEHOLDER_PREFIX;
+
+    protected String placeholderSuffix = DEFAULT_PLACEHOLDER_SUFFIX;
+
+    // TODO Obtain application-provided TextEncryptor (using default impl for now)
     private TextEncryptor textEncryptor = new HexTextEncryptor();
+
 
     @Override
     public String resolveStringValue(String strVal) {
@@ -20,8 +35,8 @@ public class EncryptedStringValueResolver implements StringValueResolver {
             return strVal;
         }
 
-        // Strip out the encrypted string value placeholders
-        strVal = strVal.substring(1, strVal.length() - 1);
+        // Strip out the placeholders
+        strVal = strVal.substring(getPlaceholderPrefix().length(), strVal.length() - getPlaceholderSuffix().length());
 
         String decryptedStrValue = textEncryptor.decrypt(strVal);
 
@@ -32,8 +47,24 @@ public class EncryptedStringValueResolver implements StringValueResolver {
         if (strVal == null) {
             return false;
         }
-        return (strVal.startsWith(ENCRYPTED_STRING_VALUE_PREFIX) &&
-                strVal.endsWith(ENCRYPTED_STRING_VALUE_SUFFIX));
+        return (strVal.startsWith(getPlaceholderPrefix()) &&
+                strVal.endsWith(getPlaceholderSuffix()));
+    }
+
+    public String getPlaceholderPrefix() {
+        return placeholderPrefix;
+    }
+
+    public void setPlaceholderPrefix(String placeholderPrefix) {
+        this.placeholderPrefix = placeholderPrefix;
+    }
+
+    public String getPlaceholderSuffix() {
+        return placeholderSuffix;
+    }
+
+    public void setPlaceholderSuffix(String placeholderSuffix) {
+        this.placeholderSuffix = placeholderSuffix;
     }
 
     private static class HexTextEncryptor implements TextEncryptor {

@@ -1,12 +1,14 @@
 package org.springframework.security.crypto.encrypt.property;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -16,6 +18,16 @@ import org.springframework.util.StringValueResolver;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * This class is a specialization of {@link BeanDefinitionRegistryPostProcessor} which is responsible for
+ * registering {@link BeanDefinition}'s that provide support around encrypted property values.
+ *
+ * A {@link GenericConverter} is registered with the current {@link Environment}'s {@link ConversionService}
+ * and is solely responsible for detecting encrypted property values (indicated by placeholders [...])
+ * during property resolution and then decrypting the value before returning back to the caller.
+ *
+ * @see org.springframework.security.crypto.encrypt.property.EncryptedStringValueResolver
+ */
 public class EncryptedPropertySupportPostProcessor implements
         BeanDefinitionRegistryPostProcessor, PriorityOrdered, EnvironmentAware {
 
@@ -26,21 +38,19 @@ public class EncryptedPropertySupportPostProcessor implements
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        // TODO Auto-register Crypto-related core services
+        // TODO Register beans providing this feature
 
+        // Register converter against the current environment
+        registerEncryptedPropertyValueConverter(environment);
     }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactoryToProcess) throws BeansException {
-        registerEncryptedPropertyValueConverter(environment);
-
     }
 
     protected void registerEncryptedPropertyValueConverter(Environment environment) {
-        if (ConfigurableEnvironment.class.isInstance(environment)) {
-            ConfigurableEnvironment configurableEnvironment = ConfigurableEnvironment.class.cast(environment);
-            configurableEnvironment.getConversionService().addConverter(new EncryptedPropertyValueConverter());
-        }
+        ConfigurableEnvironment configurableEnvironment = ConfigurableEnvironment.class.cast(environment);
+        configurableEnvironment.getConversionService().addConverter(new EncryptedPropertyValueConverter());
     }
 
     @Override

@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class EncryptedOAuthCredentialsPropertiesApplication {
+public class EncryptedOAuthClientCredentialsPropertiesApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(EncryptedOAuthCredentialsPropertiesApplication.class, args);
+        SpringApplication.run(EncryptedOAuthClientCredentialsPropertiesApplication.class, args);
     }
 
 }

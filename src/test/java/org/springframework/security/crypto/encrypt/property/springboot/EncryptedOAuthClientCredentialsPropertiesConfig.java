@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.encrypt.property.EncryptedPropertySupportPostProcessor;
 
 @Configuration
-public class EncryptedOAuthCredentialsPropertiesConfig {
+public class EncryptedOAuthClientCredentialsPropertiesConfig {
 
     @Bean
     public static BeanDefinitionRegistryPostProcessor encryptedPropertySupportPostProcessor() {
@@ -14,8 +14,8 @@ public class EncryptedOAuthCredentialsPropertiesConfig {
     }
 
     @Bean
-    public OAuthCredentialsProperties oauthCredentialsProperties() {
-        return new OAuthCredentialsProperties();
+    public OAuthClientCredentialsProperties oauthClientCredentialsProperties() {
+        return new OAuthClientCredentialsProperties();
     }
 
 }
