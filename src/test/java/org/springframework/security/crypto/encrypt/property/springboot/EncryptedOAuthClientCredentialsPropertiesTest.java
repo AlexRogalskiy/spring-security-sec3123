@@ -5,6 +5,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.SimpleCommandLinePropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,11 +38,52 @@ public class EncryptedOAuthClientCredentialsPropertiesTest {
     @Autowired
     private OAuthClientCredentialsProperties oauthClientCredentialsProperties;
 
+    @Autowired
+    private Environment environment;
+
 
     @Test
-    public void testPropertyValuesDecrypted() {
+    public void testDefaultPropertiesDecrypted() {
         assertThat(oauthClientCredentialsProperties.getClientId()).isEqualTo("serviceapp1");
         assertThat(oauthClientCredentialsProperties.getClientSecret()).isEqualTo("serviceapp1secret");
+    }
+
+    @Test
+    public void testSystemPropertyOverrideDecrypted() {
+        String clientSecretPropertyName = "security.oauth2.client.client-secret";
+
+        // Check default
+        assertThat(environment.getProperty(clientSecretPropertyName)).isEqualTo("serviceapp1secret");
+
+        System.setProperty(clientSecretPropertyName, "[73657276696365617070312d6e6577736563726574]");
+
+        // Check override
+        assertThat(environment.getProperty(clientSecretPropertyName)).isEqualTo("serviceapp1-newsecret");
+    }
+
+    @Test
+    public void testCommandLineArgumentsDecrypted() {
+        String clientSecretPropertyName = "security.oauth2.client.client-secret";
+        String defaultClientSecret = "serviceapp1secret";
+        String newClientSecret = "serviceapp1-newsecret";
+
+        // Check default
+        assertThat(environment.getProperty(clientSecretPropertyName)).isEqualTo(defaultClientSecret);
+
+        // Add command line arguments property source
+        SimpleCommandLinePropertySource commandLineArguments = new SimpleCommandLinePropertySource(
+                "--" + clientSecretPropertyName + "=[73657276696365617070312d6e6577736563726574]");
+        ConfigurableEnvironment configurableEnvironment = ConfigurableEnvironment.class.cast(environment);
+        configurableEnvironment.getPropertySources().addFirst(commandLineArguments);
+
+        // Check override
+        assertThat(environment.getProperty(clientSecretPropertyName)).isEqualTo(newClientSecret);
+
+        // Reset
+        configurableEnvironment.getPropertySources().remove(commandLineArguments.getName());
+
+        // Check default again
+        assertThat(environment.getProperty(clientSecretPropertyName)).isEqualTo(defaultClientSecret);
     }
 
 }
